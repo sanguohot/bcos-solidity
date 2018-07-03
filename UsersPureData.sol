@@ -7,16 +7,16 @@ contract UsersPureData is ContractBase("v2") {
     struct Users{
       bool active;
       address accountAddress;
-      string publicKey;
-      string idCartNo;
-      string detail;
+      bytes32[2] publicKey;
+      bytes32 idCartNo;
+      bytes32[8] detail;
       uint time;
     }
 
     // userId(address) => Users 保存用户列表
     mapping(address=>Users) usersMap;
     // idCartNo => userId(address) 控制idCartNo唯一
-    mapping(string=>address) addressMap;
+    mapping(bytes32=>address) addressMap;
 
     event onSetUsersPureDataInvokerAddress(address invokerAddress);
 
@@ -32,17 +32,20 @@ contract UsersPureData is ContractBase("v2") {
       }
     }
 
-    function getUserIdInAddressMap(string idCartNo) public constant returns (address){
+    function getUserIdInAddressMap(bytes32 idCartNo) public constant returns (address){
       if(msg.sender==invoker || msg.sender==owner){
         return addressMap[idCartNo];
       }
       return 0;
     }
 
-    function setUserIdToAddressMap(string idCartNo, address accountAddress) public returns (bool){
+    function setUserIdToAddressMap(bytes32 idCartNo, address accountAddress) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
-        addressMap[idCartNo] = accountAddress;
-        return true;
+        if(addressMap[idCartNo]==0){
+          addressMap[idCartNo] = accountAddress;
+          return true;
+        }
+        return false;
       }
       return false;
     }
@@ -56,8 +59,11 @@ contract UsersPureData is ContractBase("v2") {
 
     function setActiveToUsersMap(address userId, bool active) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
-        usersMap[userId].active = active;
-        return true;
+        if(usersMap[userId].time!=0){
+          usersMap[userId].active = active;
+          return true;
+        }
+        return false;
       }
       return false;
     }
@@ -71,53 +77,74 @@ contract UsersPureData is ContractBase("v2") {
 
     function setAccountAddressToUsersMap(address userId, address accountAddress) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
-        usersMap[userId].accountAddress = accountAddress;
-        return true;
+        if(usersMap[userId].active){
+          usersMap[userId].accountAddress = accountAddress;
+          return true;
+        }
+        return false;
       }
       return false;
     }
 
-    function getPublicKeyInUsersMap(address userId) public constant returns (string){
+    function getPublicKeyInUsersMap(address userId) public constant returns (bytes32[2]){
       if(msg.sender==invoker || msg.sender==owner){
         return usersMap[userId].publicKey;
       }
-      return "";
+      return [bytes32(0), bytes32(0)];
     }
 
-    function setPublicKeyToUsersMap(address userId, string publicKey) public returns (bool){
+    function setPublicKeyToUsersMap(address userId, bytes32[2] publicKey) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
-        usersMap[userId].publicKey = publicKey;
-        return true;
+        if(usersMap[userId].time!=0){
+          usersMap[userId].publicKey = publicKey;
+          return true;
+        }
+        return false;
       }
       return false;
     }
 
-    function getIdCartNoInUsersMap(address userId) public constant returns (string){
+    function getIdCartNoInUsersMap(address userId) public constant returns (bytes32){
       if(msg.sender==invoker || msg.sender==owner){
         return usersMap[userId].idCartNo;
       }
       return "";
     }
 
-    function setIdCartNoToUsersMap(address userId, string idCartNo) public returns (bool){
+    function setIdCartNoToUsersMap(address userId, bytes32 idCartNo) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
-        usersMap[userId].idCartNo = idCartNo;
-        return true;
+        if(usersMap[userId].active){
+          usersMap[userId].idCartNo = idCartNo;
+          return true;
+        }
+        return false;
       }
       return false;
     }
 
-    function getDetailInUsersMap(address userId) public constant returns (string){
+    function getDetailInUsersMap(address userId) public constant returns (bytes32[8]){
       if(msg.sender==invoker || msg.sender==owner){
         return usersMap[userId].detail;
       }
-      return "";
+      return [
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0)
+      ];
     }
 
-    function setDetailToUsersMap(address userId, string detail) public returns (bool){
+    function setDetailToUsersMap(address userId, bytes32[8] detail) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
-        usersMap[userId].detail = detail;
-        return true;
+        if(usersMap[userId].active){
+          usersMap[userId].detail = detail;
+          return true;
+        }
+        return false;
       }
       return false;
     }
@@ -131,26 +158,36 @@ contract UsersPureData is ContractBase("v2") {
 
     function setTimeToUsersMap(address userId, uint time) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
-        usersMap[userId].time = time;
-        return true;
+        if(usersMap[userId].active){
+          usersMap[userId].time = time;
+          return true;
+        }
+        return false;
       }
       return false;
     }
 
-    function addUserToUsersMap(address userId,address accountAddress,string publicKey,string idCartNo
-    ,string detail,uint time) public returns (address){
+    function addUserToUsersMap(address userId,address accountAddress,bytes32[2] publicKey,bytes32 idCartNo
+    ,bytes32[8] detail,uint time) public returns (address){
       if(msg.sender==invoker || msg.sender==owner){
-        usersMap[userId] = Users(true,accountAddress,publicKey,idCartNo,detail,time);
-        return userId;
+        if(!usersMap[userId].active){
+          usersMap[userId] = Users(true,accountAddress,publicKey,idCartNo,detail,time);
+          addressMap[idCartNo] = userId;
+          return userId;
+        }
+        return 0;
       }
       return 0;
     }
 
     function delUserInUsersMap(address userId) public returns (bool succ){
       if(msg.sender==invoker || msg.sender==owner){
-        usersMap[userId].active = false;
-        addressMap[usersMap[userId].idCartNo] = 0;
-        return true;
+        if(usersMap[userId].active){
+          usersMap[userId].active = false;
+          addressMap[usersMap[userId].idCartNo] = 0;
+          return true;
+        }
+        return false;
       }
       return false;
     }

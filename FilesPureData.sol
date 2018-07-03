@@ -8,13 +8,13 @@ contract FilesPureData is ContractBase("v2") {
         bool active;
         address userId;
         address[] signerAddressList;
-        string[] signDataList;
-        string fileHash;
-        string ipfsHash;
-        string detail;
+        bytes32[2][] signDataList;
+        bytes32 fileHash;
+        bytes32[2] ipfsHash;
+        bytes32[4] detail;
         uint time;
     }
-    mapping(string=>Files) filesMap;
+    mapping(bytes32=>Files) filesMap;
 
     event onSetFilesPureDataInvokerAddress(address invokerAddress);
 
@@ -30,14 +30,14 @@ contract FilesPureData is ContractBase("v2") {
       }
     }
 
-    function getActiveInFilesMap(string fileId) public constant returns (bool){
+    function getActiveInFilesMap(bytes32 fileId) public constant returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].active;
       }
       return false;
     }
 
-    function setActiveToFilesMap(string fileId, address userId, bool active) public returns (bool){
+    function setActiveToFilesMap(bytes32 fileId, address userId, bool active) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
         if(filesMap[fileId].userId == userId){
           filesMap[fileId].active = active;
@@ -47,14 +47,14 @@ contract FilesPureData is ContractBase("v2") {
       return false;
     }
 
-    function getUserIdInFilesMap(string fileId) public constant returns (address){
+    function getUserIdInFilesMap(bytes32 fileId) public constant returns (address){
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].userId;
       }
       return 0;
     }
 
-    function setUserIdToFilesMap(string fileId, address userId, address newUserId) public returns (bool){
+    function setUserIdToFilesMap(bytes32 fileId, address userId, address newUserId) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
         if(filesMap[fileId].userId == userId){
           filesMap[fileId].userId = newUserId;
@@ -64,14 +64,14 @@ contract FilesPureData is ContractBase("v2") {
       return false;
     }
 
-    function getFileHashInFilesMap(string fileId) public constant returns (string){
+    function getFileHashInFilesMap(bytes32 fileId) public constant returns (bytes32){
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].fileHash;
       }
-      return "";
+      return bytes32(0);
     }
 
-    function setFileHashToFilesMap(string fileId, address userId, string fileHash) public returns (bool){
+    function setFileHashToFilesMap(bytes32 fileId, address userId, bytes32 fileHash) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
         if(filesMap[fileId].userId == userId){
           filesMap[fileId].fileHash = fileHash;
@@ -81,14 +81,14 @@ contract FilesPureData is ContractBase("v2") {
       return false;
     }
 
-    function getIpfsHashInFilesMap(string fileId) public constant returns (string){
+    function getIpfsHashInFilesMap(bytes32 fileId) public constant returns (bytes32[2]){
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].ipfsHash;
       }
-      return "";
+      return [bytes32(0),bytes32(0)];
     }
 
-    function setIpfsHashToFilesMap(string fileId, address userId, string ipfsHash) public returns (bool){
+    function setIpfsHashToFilesMap(bytes32 fileId, address userId, bytes32[2] ipfsHash) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
         if(filesMap[fileId].userId == userId){
           filesMap[fileId].ipfsHash = ipfsHash;
@@ -98,14 +98,14 @@ contract FilesPureData is ContractBase("v2") {
       return false;
     }
 
-    function getDetailInFilesMap(string fileId) public constant returns (string){
+    function getDetailInFilesMap(bytes32 fileId) public constant returns (bytes32[4]){
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].detail;
       }
-      return "";
+      return [bytes32(0),bytes32(0),bytes32(0),bytes32(0)];
     }
 
-    function setDetailToFilesMap(string fileId, address userId, string detail) public returns (bool){
+    function setDetailToFilesMap(bytes32 fileId, address userId, bytes32[4] detail) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
         if(filesMap[fileId].userId == userId){
           filesMap[fileId].detail = detail;
@@ -115,14 +115,14 @@ contract FilesPureData is ContractBase("v2") {
       return false;
     }
 
-    function getTimeInFilesMap(string fileId) public constant returns (uint){
+    function getTimeInFilesMap(bytes32 fileId) public constant returns (uint){
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].time;
       }
       return 0;
     }
 
-    function setTimeToFilesMap(string fileId, address userId, uint time) public returns (bool){
+    function setTimeToFilesMap(bytes32 fileId, address userId, uint time) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
         if(filesMap[fileId].userId == userId){
           filesMap[fileId].time = time;
@@ -132,20 +132,20 @@ contract FilesPureData is ContractBase("v2") {
       return false;
     }
 
-    function getFileSignSize(string fileId) public constant returns (uint size) {
+    function getFileSignSize(bytes32 fileId) public constant returns (uint size) {
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].signerAddressList.length;
       }
       return 0;
     }
 
-    function getFileSignerAddressByIndex(string fileId, uint index) public constant returns (address signerAddress) {
+    function getFileSignerAddressByIndex(bytes32 fileId, uint index) public constant returns (address signerAddress) {
         if(msg.sender==invoker || msg.sender==owner){
           return filesMap[fileId].signerAddressList[index];
         }
         return 0;
     }
-    function isUserIdExist(string fileId, address userId) public constant returns (bool valid){
+    function isUserIdExist(bytes32 fileId, address userId) public constant returns (bool valid){
       valid = false;
       if(msg.sender==invoker || msg.sender==owner){
         if(filesMap[fileId].userId == userId){
@@ -163,14 +163,14 @@ contract FilesPureData is ContractBase("v2") {
       return valid;
     }
 
-    function getFileSignDataByIndex(string fileId, uint index) public constant returns (string) {
+    function getFileSignDataByIndex(bytes32 fileId, uint index) public constant returns (bytes32[2]) {
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].signDataList[index];
       }
-      return "";
+      return [bytes32(0),bytes32(0)];
     }
 
-    function addFileSigner(string fileId, address userId, string signData) public returns (bool succ){
+    function addFileSigner(bytes32 fileId, address userId, bytes32[2] signData) public returns (bool succ){
       if(msg.sender==invoker || msg.sender==owner){
         if(!isUserIdExist(fileId, userId)){
           filesMap[fileId].signerAddressList.push(userId);
@@ -181,29 +181,30 @@ contract FilesPureData is ContractBase("v2") {
       return false;
     }
 
-    function addFile(address userId, string signData, string fileHash, string ipfsHash, string detail, uint time) public returns (string){
+    function addFile(address userId, bytes32[2] signData, bytes32 fileHash, bytes32[2] ipfsHash, bytes32[4] detail, uint time) public returns (bytes32){
       if(msg.sender==invoker || msg.sender==owner){
-        string memory fileId = fileHash;
-        address[] memory signerAddressList = new address[](1);
-        string[] memory signDataList = new string[](1);
-        signerAddressList[0] = userId;
-        signDataList[0] = signData;
-        filesMap[fileId] = Files(
-          true,
-          userId,
-          signerAddressList,
-          signDataList,
-          fileHash,
-          ipfsHash,
-          detail,
-          time
-        );
-        return fileId;
+        if(!filesMap[fileHash].active){
+            address[] memory signerAddressList = new address[](1);
+            bytes32[2][] memory signDataList = new bytes32[2][](1);
+            signerAddressList[0] = userId;
+            signDataList[0] = signData;
+            filesMap[fileHash] = Files(
+              true,
+              userId,
+              signerAddressList,
+              signDataList,
+              fileHash,
+              ipfsHash,
+              detail,
+              time
+            );
+            return fileHash;
+        }
       }
-      return "";
+      return bytes32(0);
     }
 
-    function delFile(string fileId, address userId) public returns (bool succ){
+    function delFile(bytes32 fileId, address userId) public returns (bool succ){
       if(msg.sender==invoker || msg.sender==owner){
         if(filesMap[fileId].userId == userId){
           filesMap[fileId].active = false;

@@ -11,17 +11,17 @@ contract UsersController is ContractBase("v2") {
     usersDataContract = UsersPureData(usersDataContractAddress);
   }
 
-  event onAddUser(address accountAddress,string publicKey,string idCartNo,string detail);
-  event onSetUserDetail(address accountAddress,string detail);
-  event onDelUser(address accountAddress,string publicKey,string idCartNo,string detail);
+  event onAddUser(address accountAddress,bytes32[2] publicKey,bytes32 idCartNo,bytes32[8] detail);
+  event onSetUserDetail(address accountAddress,bytes32[8] detail);
+  event onDelUser(address accountAddress,bytes32[2] publicKey,bytes32 idCartNo,bytes32[8] detail);
 
-  function getUserIdByIdCartNo(string idCartNo) public constant returns (address accountAddress){
+  function getUserIdByIdCartNo(bytes32 idCartNo) public constant returns (address accountAddress){
     return usersDataContract.getUserIdInAddressMap(idCartNo);
   }
 
-  function getUserBasic() public constant returns (address accountAddress,string publicKey,string idCartNo) {
+  function getUserBasic() public constant returns (address accountAddress,bytes32[2] publicKey,bytes32 idCartNo) {
     if (!usersDataContract.getActiveInUsersMap(msg.sender)) {
-      return (0, "", "");
+      return (0, [bytes32(0),bytes32(0)], bytes32(0));
     }
     return (
       usersDataContract.getAccountAddressInUsersMap(msg.sender),
@@ -30,28 +30,37 @@ contract UsersController is ContractBase("v2") {
     );
   }
 
-  function getUserDetail() public constant returns (string detail) {
+  function getUserDetail() public constant returns (bytes32[8] detail) {
     if (!usersDataContract.getActiveInUsersMap(msg.sender)) {
-      return ("");
+      return [
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0),
+        bytes32(0)
+      ];
     }
     return (
       usersDataContract.getDetailInUsersMap(msg.sender)
     );
   }
 
-  function addUser(address accountAddress,string publicKey,string idCartNo
-  ,string detail,uint time) public returns (address userId){
+  function addUser(address accountAddress,bytes32[2] publicKey,bytes32 idCartNo
+  ,bytes32[8] detail,uint time) public returns (address userId){
     userId = msg.sender;
-    if(accountAddress == 0){
+    if(accountAddress==0 || idCartNo==0 || time==0){
+      return 0;
+    }
+    if(publicKey[0]==0 && publicKey[1]==0){
       return 0;
     }
     if(usersDataContract.getUserIdInAddressMap(idCartNo) != 0){
       return 0;
     }
-    bytes memory publicKeyBytes = bytes(publicKey);
-    if(publicKeyBytes.length == 0){
-      return 0;
-    }
+
     if (usersDataContract.getActiveInUsersMap(userId)){
       return 0;
     }
@@ -66,7 +75,7 @@ contract UsersController is ContractBase("v2") {
     return userId;
   }
 
-  function setUserDetail(string detail) public returns (bool succ){
+  function setUserDetail(bytes32[8] detail) public returns (bool succ){
     if (!usersDataContract.getActiveInUsersMap(msg.sender)) {
       return false;
     }
