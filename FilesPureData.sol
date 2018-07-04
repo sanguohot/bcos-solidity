@@ -8,8 +8,8 @@ contract FilesPureData is ContractBase("v2") {
         bool active;
         address userId;
         address[] signerAddressList;
-        bytes32[2][] signDataList;
-        bytes32 fileHash;
+        bytes32[4][] signDataList;
+        bytes32[2] fileHash;
         bytes32[2] ipfsHash;
         bytes32[4] detail;
         uint time;
@@ -64,14 +64,14 @@ contract FilesPureData is ContractBase("v2") {
       return false;
     }
 
-    function getFileHashInFilesMap(bytes32 fileId) public constant returns (bytes32){
+    function getFileHashInFilesMap(bytes32 fileId) public constant returns (bytes32[2]){
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].fileHash;
       }
-      return bytes32(0);
+      return [bytes32(0), bytes32(0)];
     }
 
-    function setFileHashToFilesMap(bytes32 fileId, address userId, bytes32 fileHash) public returns (bool){
+    function setFileHashToFilesMap(bytes32 fileId, address userId, bytes32[2] fileHash) public returns (bool){
       if(msg.sender==invoker || msg.sender==owner){
         if(filesMap[fileId].userId == userId){
           filesMap[fileId].fileHash = fileHash;
@@ -163,14 +163,14 @@ contract FilesPureData is ContractBase("v2") {
       return valid;
     }
 
-    function getFileSignDataByIndex(bytes32 fileId, uint index) public constant returns (bytes32[2]) {
+    function getFileSignDataByIndex(bytes32 fileId, uint index) public constant returns (bytes32[4]) {
       if(msg.sender==invoker || msg.sender==owner){
         return filesMap[fileId].signDataList[index];
       }
-      return [bytes32(0),bytes32(0)];
+      return [bytes32(0),bytes32(0),bytes32(0),bytes32(0)];
     }
 
-    function addFileSigner(bytes32 fileId, address userId, bytes32[2] signData) public returns (bool succ){
+    function addFileSigner(bytes32 fileId, address userId, bytes32[4] signData) public returns (bool succ){
       if(msg.sender==invoker || msg.sender==owner){
         if(!isUserIdExist(fileId, userId)){
           filesMap[fileId].signerAddressList.push(userId);
@@ -181,14 +181,14 @@ contract FilesPureData is ContractBase("v2") {
       return false;
     }
 
-    function addFile(address userId, bytes32[2] signData, bytes32 fileHash, bytes32[2] ipfsHash, bytes32[4] detail, uint time) public returns (bytes32){
+    function addFile(bytes32 fileId, address userId, bytes32[4] signData, bytes32[2] fileHash, bytes32[2] ipfsHash, bytes32[4] detail, uint time) public returns (bytes32){
       if(msg.sender==invoker || msg.sender==owner){
-        if(!filesMap[fileHash].active){
+        if(!filesMap[fileId].active){
             address[] memory signerAddressList = new address[](1);
-            bytes32[2][] memory signDataList = new bytes32[2][](1);
+            bytes32[4][] memory signDataList = new bytes32[4][](1);
             signerAddressList[0] = userId;
             signDataList[0] = signData;
-            filesMap[fileHash] = Files(
+            filesMap[fileId] = Files(
               true,
               userId,
               signerAddressList,
@@ -198,7 +198,7 @@ contract FilesPureData is ContractBase("v2") {
               detail,
               time
             );
-            return fileHash;
+            return fileId;
         }
       }
       return bytes32(0);

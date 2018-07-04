@@ -7,8 +7,8 @@ contract FilesController is ContractBase("v2") {
   uint MAX_SIGN_LEN = 3;
   FilesPureData filesDataContract;
 
-  event onAddFile(bytes32 fileId,address ownerAddress,bytes32 fileHash,bytes32[2] ipfsHash,bytes32[4] detail,uint time);
-  event onAddSign(bytes32 fileId,address signerAddress,bytes32[2] signData);
+  event onAddFile(bytes32 fileId,address ownerAddress,bytes32[2] fileHash,bytes32[2] ipfsHash,bytes32[4] detail,uint time);
+  event onAddSign(bytes32 fileId,address signerAddress,bytes32[4] signData);
   event onSetFileDetail(bytes32 fileId,bytes32[4] detail);
   event onDelFile(bytes32 fileId);
 
@@ -43,19 +43,19 @@ contract FilesController is ContractBase("v2") {
     return filesDataContract.getFileSignerAddressByIndex(fileId, index);
   }
 
-  function getFileSignDataByIndex(bytes32 fileId, uint index) public constant returns (bytes32[2] signData) {
+  function getFileSignDataByIndex(bytes32 fileId, uint index) public constant returns (bytes32[4] signData) {
     if(index<0 || index>MAX_SIGN_LEN){
-      return [bytes32(0),bytes32(0)];
+      return [bytes32(0),bytes32(0),bytes32(0),bytes32(0)];
     }
     if (!filesDataContract.getActiveInFilesMap(fileId)) {
-      return [bytes32(0),bytes32(0)];
+      return [bytes32(0),bytes32(0),bytes32(0),bytes32(0)];
     }
     return filesDataContract.getFileSignDataByIndex(fileId, index);
   }
 
-  function getFileBasic(bytes32 fileId) public constant returns (address ownerAddress, bytes32 fileHash, bytes32[2] ipfsHash, uint signSize, uint time) {
+  function getFileBasic(bytes32 fileId) public constant returns (address ownerAddress, bytes32[2] fileHash, bytes32[2] ipfsHash, uint signSize, uint time) {
     if(!filesDataContract.getActiveInFilesMap(fileId)){
-      return (0,bytes32(0),[bytes32(0),bytes32(0)],0,0);
+      return (0,[bytes32(0),bytes32(0)],[bytes32(0),bytes32(0)],0,0);
     }
     return (
       filesDataContract.getUserIdInFilesMap(fileId),
@@ -75,7 +75,7 @@ contract FilesController is ContractBase("v2") {
     );
   }
 
-  function addFileSigner(bytes32 fileId, bytes32[2] signData) public returns (bool succ){
+  function addFileSigner(bytes32 fileId, bytes32[4] signData) public returns (bool succ){
     if (!filesDataContract.getActiveInFilesMap(fileId)) {
       return false;
     }
@@ -90,11 +90,11 @@ contract FilesController is ContractBase("v2") {
     return false;
   }
 
-  function addFile(bytes32[2] signData, bytes32 fileHash, bytes32[2] ipfsHash, bytes32[4] detail, uint time) public returns (bytes32 fileId){
+  function addFile(bytes32 fileId, bytes32[4] signData, bytes32[2] fileHash, bytes32[2] ipfsHash, bytes32[4] detail, uint time) public returns (bytes32){
     if (filesDataContract.getActiveInFilesMap(fileId)){
         return "";
     }
-    fileId = filesDataContract.addFile(msg.sender, signData, fileHash, ipfsHash, detail, time);
+    fileId = filesDataContract.addFile(fileId, msg.sender, signData, fileHash, ipfsHash, detail, time);
     if(fileId == 0){
       return "";
     }

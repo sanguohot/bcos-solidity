@@ -11,17 +11,17 @@ contract UsersController is ContractBase("v2") {
     usersDataContract = UsersPureData(usersDataContractAddress);
   }
 
-  event onAddUser(address accountAddress,bytes32[2] publicKey,bytes32 idCartNo,bytes32[8] detail);
+  event onAddUser(address accountAddress,bytes32[4] publicKey,bytes32 idCartNo,bytes32[8] detail);
   event onSetUserDetail(address accountAddress,bytes32[8] detail);
-  event onDelUser(address accountAddress,bytes32[2] publicKey,bytes32 idCartNo,bytes32[8] detail);
+  event onDelUser(address accountAddress,bytes32[4] publicKey,bytes32 idCartNo,bytes32[8] detail);
 
   function getUserIdByIdCartNo(bytes32 idCartNo) public constant returns (address accountAddress){
     return usersDataContract.getUserIdInAddressMap(idCartNo);
   }
 
-  function getUserBasic() public constant returns (address accountAddress,bytes32[2] publicKey,bytes32 idCartNo) {
+  function getUserBasic() public constant returns (address accountAddress,bytes32[4] publicKey,bytes32 idCartNo) {
     if (!usersDataContract.getActiveInUsersMap(msg.sender)) {
-      return (0, [bytes32(0),bytes32(0)], bytes32(0));
+      return (0, [bytes32(0),bytes32(0),bytes32(0),bytes32(0)], bytes32(0));
     }
     return (
       usersDataContract.getAccountAddressInUsersMap(msg.sender),
@@ -48,7 +48,7 @@ contract UsersController is ContractBase("v2") {
     );
   }
 
-  function addUser(address accountAddress,bytes32[2] publicKey,bytes32 idCartNo
+  function addUser(address accountAddress,bytes32[4] publicKey,bytes32 idCartNo
   ,bytes32[8] detail,uint time) public returns (address userId){
     userId = msg.sender;
     if(accountAddress==0 || idCartNo==0 || time==0){

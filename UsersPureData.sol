@@ -7,7 +7,7 @@ contract UsersPureData is ContractBase("v2") {
     struct Users{
       bool active;
       address accountAddress;
-      bytes32[2] publicKey;
+      bytes32[4] publicKey;
       bytes32 idCartNo;
       bytes32[8] detail;
       uint time;
@@ -86,11 +86,11 @@ contract UsersPureData is ContractBase("v2") {
       return false;
     }
 
-    function getPublicKeyInUsersMap(address userId) public constant returns (bytes32[2]){
+    function getPublicKeyInUsersMap(address userId) public constant returns (bytes32[4]){
       if(msg.sender==invoker || msg.sender==owner){
         return usersMap[userId].publicKey;
       }
-      return [bytes32(0), bytes32(0)];
+      return [bytes32(0), bytes32(0), bytes32(0), bytes32(0)];
     }
 
     function setPublicKeyToUsersMap(address userId, bytes32[2] publicKey) public returns (bool){
@@ -167,7 +167,7 @@ contract UsersPureData is ContractBase("v2") {
       return false;
     }
 
-    function addUserToUsersMap(address userId,address accountAddress,bytes32[2] publicKey,bytes32 idCartNo
+    function addUserToUsersMap(address userId,address accountAddress,bytes32[4] publicKey,bytes32 idCartNo
     ,bytes32[8] detail,uint time) public returns (address){
       if(msg.sender==invoker || msg.sender==owner){
         if(!usersMap[userId].active){
